@@ -2,9 +2,9 @@ from random import uniform
 from random import randint
 from random import sample
 
-d = 4
+d = 2
 dominio = [-30,30]
-erro = 3
+erro = 1
 
 def gera_ind_aleatorio (d,dominio):
   ind = [0]
@@ -19,28 +19,52 @@ def gera_pop (np, d, dominio):
     pop.append(gera_ind_aleatorio (d,dominio))
   return pop
 
-np = 5
+np = 10
 cr = 0.7
 f = 1
 gen = 20
 
-def mutacao (dif, pop_ruido):
-  mut = []
-  return mut
-
 def diferencial (pop_dif, f):
   dif = [0]
   for i in range(len(pop_dif[0])-1):
-    dif.append((pop_dif[0][i+1] - pop_dif[1][i+1]) * f)
+    dif.append(round((pop_dif[0][i+1] - pop_dif[1][i+1]) * f, erro))
     dif[0] += round(dif[i+1]**2,erro)
   return dif
 
-pop_exp = []
+def mutacao (dif, pop_ruido):
+  mut = [0]
+  for i in range(len(dif)-1):
+    mut.append(round((dif[i+1] + pop_ruido[i+1]) * f, erro))
+    mut[0] += round(dif[i+1]**2,erro)
+  return mut
+
+def cruzamento (ruido, pop_cruzada):
+  cruz = [0]
+  for i in range(len(ruido)-1):
+    if (i<(len(ruido)-1)/2):
+      cruz.append(round(ruido[i+1], erro))
+    else:
+      cruz.append(round(pop_cruzada[i+1], erro))
+    cruz[0] += round(cruz[i+1]**2,erro)
+  return cruz
+
+def selecao (experimental, pop_selecionada):
+  if (experimental[0]<pop_selecionada[0]):
+    return experimental
+  else:
+    return pop_selecionada
+
 pop = gera_pop(np,d,dominio)
-for i in range(3):
-  pop_exp = sample(0,len(pop)-1,4)
 
-dif = diferencial (pop_exp[2:])
-ruido = mutacao (dif, pop_exp[1])
+for j in range(gen):
+  for i, ind in enumerate(pop):
+    pop.remove(pop[i])
+    pop_exp = sample(pop,3)
+    pop_exp.append(ind)
+    dif = diferencial (pop_exp[2:],f)
+    ruido = mutacao (dif, pop_exp[1])
+    experimental = cruzamento(ruido, pop_exp[0])
+    pop.insert(i,selecao(experimental,ind))
+    print(sorted(pop)[0])
 
-print(dif,"\n",ruido)
+print("\n",sorted(pop)[0])
